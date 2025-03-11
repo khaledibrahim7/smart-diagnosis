@@ -25,11 +25,9 @@ public class EmailService {
             helper.setTo(toEmail);
             helper.setSubject("🎉 Welcome to Smart Diagnosis, " + firstName + "!");
 
-            // 🔹 استبدال الصورة بالرابط الصحيح للصورة التي أرسلتها
-            // 🔹 رابط الصورة الخاصة بالترحيب
+            
             String imageUrl = "https://www.shutterstock.com/image-vector/artificial-intelligence-fix-bugs-checks-260nw-2522071531.jpg";
 
-            // 🔹 محتوى البريد بتنسيق HTML
             String htmlContent = "<html>" +
                     "<body style='font-family: Arial, sans-serif; text-align: center;'>" +
                     "<h2 style='color: #2c3e50;'>Welcome to Smart Diagnosis, " + firstName + "!</h2>" +
