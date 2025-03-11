@@ -31,7 +31,7 @@ public class JWTUtil {
             byte[] keyBytes = Base64.getDecoder().decode(secretKey);
             Key key = Keys.hmacShaKeyFor(keyBytes);
 
-            log.info("Decoded Key Length: " + key.getEncoded().length); // ✅ طباعة طول المفتاح للتأكد
+            log.info("Decoded Key Length: " + key.getEncoded().length); 
 
             return key;
         } catch (IllegalArgumentException e) {
@@ -52,7 +52,6 @@ public class JWTUtil {
                 .compact();
     }
 
-    // استخراج اسم المستخدم من التوكن
     public String extractUsername(String token) {
         try {
             return Jwts.parserBuilder()
@@ -67,7 +66,7 @@ public class JWTUtil {
         }
     }
 
-    // التحقق من صحة التوكن
+
     public boolean validateToken(String token) {
         try {
             log.info("Validating Token: " + token);
