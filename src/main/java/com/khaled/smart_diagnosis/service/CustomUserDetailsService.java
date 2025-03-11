@@ -30,7 +30,7 @@ public class CustomUserDetailsService implements UserDetailsService {
         return new User(
                 patient.getEmail(),
                 patient.getPassword(),
-                Collections.emptyList() // يمكنك إضافة الأدوار هنا إذا كنت تستخدمها
+                Collections.emptyList()
         );
     }
 }
