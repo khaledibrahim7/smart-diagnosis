@@ -15,7 +15,6 @@ import java.util.Map;
 public class GlobalExceptionHandler {
 
 
-    // دالة لبناء استجابة خطأ عامة دون تفاصيل تقنية
     private ResponseEntity<Map<String, Object>> buildErrorResponse(HttpStatus status, String message) {
         Map<String, Object> response = new HashMap<>();
         response.put("status", status.value());
@@ -64,7 +63,7 @@ public class GlobalExceptionHandler {
         return buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "An error occurred while generating the authentication token.");
     }
 
-    @ExceptionHandler(Exception.class) // للتعامل مع أي خطأ غير متوقع
+    @ExceptionHandler(Exception.class) 
     public ResponseEntity<Map<String, Object>> handleGenericException(Exception ex) {
         return buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred. Please try again later.");
     }
