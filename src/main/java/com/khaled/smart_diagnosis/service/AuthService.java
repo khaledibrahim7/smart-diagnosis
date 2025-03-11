@@ -22,7 +22,7 @@ public class AuthService {
 
     private final PatientRepository patientRepository;
     private final PasswordEncoder passwordEncoder;
-    private final HttpSession session; // 🔹 استخدام HttpSession
+    private final HttpSession session; 
 
     public void register(RegisterRequest request) {
         if (!request.getPassword().equals(request.getConfirmPassword())) {
@@ -51,11 +51,11 @@ public class AuthService {
             throw new AuthenticationFailedException("Invalid email or password.");
         }
 
-        // 🔹 حفظ بيانات المستخدم في السيشن
+    
         session.setAttribute("loggedInUser", patient);
     }
 
     public void logout() {
-        session.invalidate(); // 🔹 حذف الجلسة عند اللوج أوت
+        session.invalidate(); 
     }
 }
