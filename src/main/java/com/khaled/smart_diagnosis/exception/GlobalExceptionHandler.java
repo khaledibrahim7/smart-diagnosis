@@ -1,12 +1,10 @@
 package com.khaled.smart_diagnosis.exception;
 
-import org.apache.tomcat.util.http.fileupload.FileUploadException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -15,7 +13,6 @@ import java.util.Map;
 public class GlobalExceptionHandler {
 
 
-    // دالة لبناء استجابة خطأ عامة دون تفاصيل تقنية
     private ResponseEntity<Map<String, Object>> buildErrorResponse(HttpStatus status, String message) {
         Map<String, Object> response = new HashMap<>();
         response.put("status", status.value());
@@ -64,10 +61,13 @@ public class GlobalExceptionHandler {
         return buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "An error occurred while generating the authentication token.");
     }
 
-    @ExceptionHandler(Exception.class) // للتعامل مع أي خطأ غير متوقع
+    @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleGenericException(Exception ex) {
         return buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred. Please try again later.");
     }
 
-
+    @ExceptionHandler(InvalidPhoneNumberException.class)
+    public ResponseEntity<String> handleInvalidPhoneNumberException(InvalidPhoneNumberException ex) {
+        return ResponseEntity.badRequest().body(ex.getMessage());
+    }
 }

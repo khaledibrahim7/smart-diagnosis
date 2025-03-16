@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.*;
 
 
 @Slf4j
-//@CrossOrigin(origins = "*") // يفضل تحديد نطاق معين بدلاً من السماح للجميع
+@CrossOrigin(origins = "http://localhost:4200")
 @RestController
 @RequestMapping("/api/auth")
 @Validated
@@ -42,30 +42,30 @@ public class AuthController {
         this.patientRepository = patientRepository;
         this.jwtUtil = jwtUtil;
         this.emailService = emailService;
-        this.passwordEncoder = new BCryptPasswordEncoder(); // 🔹 تهيئة مشفر كلمة المرور
+        this.passwordEncoder = new BCryptPasswordEncoder();
     }
-
-    // تسجيل مستخدم جديد
     @PostMapping("/register")
     public ResponseEntity<RegisterResponse> register(@Valid @RequestBody RegisterRequest request) {
         if (patientRepository.findByEmail(request.getEmail()).isPresent()) {
             throw new UserAlreadyExistsException("Email is already taken!");
         }
 
-        // إنشاء وحفظ المستخدم الجديد مع تشفير كلمة المرور
         Patient newPatient = new Patient();
         newPatient.setEmail(request.getEmail());
-        newPatient.setPassword(passwordEncoder.encode(request.getPassword())); // 🔹 تشفير كلمة المرور
+        newPatient.setPassword(passwordEncoder.encode(request.getPassword()));
         newPatient.setFirstName(request.getFirstName());
         newPatient.setLastName(request.getLastName());
         newPatient.setAge(request.getAge());
+        newPatient.setPhoneNumber(request.getPhoneNumber());
+        newPatient.setGender(request.getGender());
+
 
         Patient savedPatient = patientRepository.save(newPatient);
 
-        // 📩 إرسال إيميل الترحيب بعد التسجيل
+
         emailService.sendWelcomeEmail(savedPatient.getEmail(), savedPatient.getFirstName());
 
-        // 🔹 إنشاء توكن JWT
+
         String token = jwtUtil.generateToken(savedPatient.getEmail());
 
         return ResponseEntity.ok(new RegisterResponse(
@@ -73,26 +73,24 @@ public class AuthController {
                 savedPatient.getId(),
                 savedPatient.getFirstName(),
                 savedPatient.getLastName(),
-                savedPatient.getEmail()
+                savedPatient.getEmail(),
+                savedPatient.getPhoneNumber(),
+                savedPatient.getGender()
         ));
     }
 
-    // تسجيل الدخول
+
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
-        // التحقق من وجود المستخدم في قاعدة البيانات
         Patient patient = patientRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
 
-        // التحقق من صحة كلمة المرور باستخدام BCrypt
         if (!passwordEncoder.matches(request.getPassword(), patient.getPassword())) {
             throw new InvalidCredentialsException("Invalid credentials");
         }
 
-        // 🔹 إنشاء توكن للمستخدم بعد التحقق
         String token = jwtUtil.generateToken(patient.getEmail());
 
-        // إرجاع الاستجابة مع التوكن وبيانات المستخدم
         return ResponseEntity.ok(new LoginResponse(
                 token,
                 patient.getId(),

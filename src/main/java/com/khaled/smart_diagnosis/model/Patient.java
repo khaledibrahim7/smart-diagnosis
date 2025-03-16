@@ -17,7 +17,6 @@ import lombok.Setter;
 
 public class Patient {
 
-
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "patient_seq")
     private Long id;
@@ -34,17 +33,12 @@ public class Patient {
     @Column(nullable = false)
     private String lastName;
 
-    @Column(nullable = false) // لو العمر مطلوب
+    @Column(nullable = false)
     private Integer age;
 
-    @PrePersist
-    @PreUpdate
-    private void setDefaultValues() {
-        if (this.firstName == null || this.firstName.trim().isEmpty()) {
-            this.firstName = "Unknown";
-        }
-        if (this.lastName == null || this.lastName.trim().isEmpty()) {
-            this.lastName = "Unknown";
-        }
-    }
+    @Column(nullable = false, unique = false)
+    private String phoneNumber;
+
+    @Column(nullable = false)
+    private String gender;
 }
