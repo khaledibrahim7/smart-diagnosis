@@ -9,7 +9,9 @@ import com.khaled.smart_diagnosis.exception.InvalidCredentialsException;
 import com.khaled.smart_diagnosis.exception.UserAlreadyExistsException;
 import com.khaled.smart_diagnosis.exception.UserNotFoundException;
 import com.khaled.smart_diagnosis.model.Patient;
+import com.khaled.smart_diagnosis.model.Settings;
 import com.khaled.smart_diagnosis.repository.PatientRepository;
+import com.khaled.smart_diagnosis.repository.SettingsRepository;
 import com.khaled.smart_diagnosis.security.JWTUtil;
 import com.khaled.smart_diagnosis.service.EmailService;
 import jakarta.validation.Valid;
@@ -21,8 +23,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-
-
+import java.net.SocketTimeoutException;
 
 
 @Slf4j
@@ -33,13 +34,15 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final PatientRepository patientRepository;
+    private final SettingsRepository settingsRepository;
     private final JWTUtil jwtUtil;
     private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    public AuthController(PatientRepository patientRepository, JWTUtil jwtUtil, EmailService emailService) {
+    public AuthController(PatientRepository patientRepository, SettingsRepository settingsRepository, JWTUtil jwtUtil, EmailService emailService) {
         this.patientRepository = patientRepository;
+        this.settingsRepository = settingsRepository;
         this.jwtUtil = jwtUtil;
         this.emailService = emailService;
         this.passwordEncoder = new BCryptPasswordEncoder();
@@ -59,12 +62,21 @@ public class AuthController {
         newPatient.setPhoneNumber(request.getPhoneNumber());
         newPatient.setGender(request.getGender());
 
-
         Patient savedPatient = patientRepository.save(newPatient);
 
+        Settings settings = new Settings();
+        settings.setPatient(savedPatient);
+        settings.setLanguage("ar");
+        settings.setDarkMode(false);
 
-        emailService.sendWelcomeEmail(savedPatient.getEmail(), savedPatient.getFirstName());
+        settingsRepository.save(settings);
 
+        try {
+            emailService.sendWelcomeEmail(savedPatient.getEmail(), savedPatient.getFirstName());
+        } catch (Exception e) {
+            log.error("error while sending email, {}", e.getMessage());
+
+        }
 
         String token = jwtUtil.generateToken(savedPatient.getEmail());
 
@@ -78,6 +90,7 @@ public class AuthController {
                 savedPatient.getGender()
         ));
     }
+
 
 
     @PostMapping("/login")

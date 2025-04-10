@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 public class AuthService {
 
     private final PatientRepository patientRepository;
+    private final SettingsService settingsService;
     private final PasswordEncoder passwordEncoder;
     private final HttpSession session;
     private final PhoneValidationService phoneValidationService;
@@ -54,7 +55,9 @@ public class AuthService {
         patient.setAge(request.getAge());
         patient.setPhoneNumber(request.getPhoneNumber());
         patient.setGender(request.getGender());
-        patientRepository.save(patient);
+
+        Patient savedPatient = patientRepository.save(patient);
+        settingsService.createDefaultSettings(savedPatient);
     }
 
     public void login(String email, String password) {
@@ -68,7 +71,5 @@ public class AuthService {
         session.setAttribute("loggedInUser", patient);
     }
 
-    public void logout() {
-        session.invalidate();
-    }
+
 }

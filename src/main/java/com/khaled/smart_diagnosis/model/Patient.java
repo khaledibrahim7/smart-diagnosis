@@ -1,6 +1,9 @@
 package com.khaled.smart_diagnosis.model;
 
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -41,4 +44,10 @@ public class Patient {
 
     @Column(nullable = false)
     private String gender;
+
+    @OneToOne(mappedBy = "patient", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonBackReference
+    private Settings settings;
+
+
 }
