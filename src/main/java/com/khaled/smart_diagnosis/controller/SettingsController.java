@@ -5,7 +5,6 @@ import com.khaled.smart_diagnosis.DTO.SettingResponse;
 import com.khaled.smart_diagnosis.model.Settings;
 import com.khaled.smart_diagnosis.service.SettingsService;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -29,7 +28,6 @@ public class SettingsController {
         this.settingsService = settingsService;
     }
 
-    // 🔹 Get settings for a specific patient
     @GetMapping("/{patientId}")
     public ResponseEntity<SettingResponse> getSettings(@PathVariable Long patientId) {
         log.info("🔵 [GET] Fetching settings for patientId: {}", patientId);
@@ -45,9 +43,15 @@ public class SettingsController {
     public ResponseEntity<SettingResponse> updateSettings(
             @PathVariable Long patientId,
             @Valid @RequestBody Settings newSettings,
-            @RequestParam(required = false) String newPassword
-    ) {
+            @RequestParam(required = false) String newPassword,
+            @RequestParam(required = false) String confirmPassword) {
+
         log.info("🟠 [PUT] Updating settings for patientId: {}", patientId);
+
+        if (newPassword != null && !newPassword.equals(confirmPassword)) {
+            log.warn("❌ Passwords do not match");
+            return ResponseEntity.badRequest().body(new SettingResponse("Passwords do not match"));
+        }
 
         Optional<SettingResponse> updatedSettingResponse = settingsService.updateSettings(patientId, newSettings, newPassword);
 
@@ -60,7 +64,6 @@ public class SettingsController {
     }
 
 
-    // 🗑️ Delete account and settings for a specific patient
     @DeleteMapping("/{patientId}")
     public ResponseEntity<Void> deleteAccount(@PathVariable Long patientId) {
         log.info("🗑️ [DELETE] Deleting account and settings for patientId: {}", patientId);

@@ -21,4 +21,7 @@ public class SettingResponse {
 
     private String language;
     private boolean darkMode;
+
+    public SettingResponse(String passwordsDoNotMatch) {
+    }
 }

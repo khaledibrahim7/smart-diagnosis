@@ -82,15 +82,18 @@ public class SettingsService {
 
     @Transactional
     public Optional<SettingResponse> updateSettings(Long patientId, Settings newSettings, String newPassword) {
+        // استرجاع الإعدادات باستخدام patientId
         return settingsRepository.findByPatientId(patientId).flatMap(settings -> {
             settings.setLanguage(newSettings.getLanguage());
             settings.setDarkMode(newSettings.isDarkMode());
             settingsRepository.save(settings);
 
+            // تحديث بيانات المريض
             Optional<Patient> patientOpt = patientRepository.findById(patientId);
             if (patientOpt.isPresent()) {
                 Patient patient = patientOpt.get();
 
+                // إذا كانت كلمة السر الجديدة غير فارغة، نقوم بتحديثها
                 if (newPassword != null && !newPassword.isEmpty()) {
                     String encryptedPassword = passwordEncoder.encode(newPassword);
                     patient.setPassword(encryptedPassword);
@@ -114,21 +117,18 @@ public class SettingsService {
         });
     }
 
-
     @Transactional
     public boolean hardDeleteAccount(Long patientId) {
         Optional<Patient> patientOpt = patientRepository.findById(patientId);
-
         if (patientOpt.isPresent()) {
+            // حذف الإعدادات أولاً ثم حذف المريض
+            settingsRepository.findByPatientId(patientId).ifPresent(settingsRepository::delete);
             patientRepository.delete(patientOpt.get());
-            System.out.println("🗑️ Patient and settings deleted permanently.");
+            log.info("🗑️ Patient and settings deleted permanently for patientId: {}", patientId);
             return true;
         }
-
-        System.out.println("❌ Patient not found for hard deletion.");
+        log.warn("❌ Patient not found for deletion. patientId: {}", patientId);
         return false;
     }
-
-
 }
 

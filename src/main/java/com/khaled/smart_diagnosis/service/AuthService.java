@@ -3,6 +3,7 @@ package com.khaled.smart_diagnosis.service;
 import com.khaled.smart_diagnosis.DTO.LoginResponse;
 import com.khaled.smart_diagnosis.DTO.RegisterRequest;
 import com.khaled.smart_diagnosis.exception.*;
+import com.khaled.smart_diagnosis.model.PasswordResetToken;
 import com.khaled.smart_diagnosis.model.Patient;
 import com.khaled.smart_diagnosis.repository.PatientRepository;
 
@@ -13,7 +14,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-
+import java.time.LocalDateTime;
+import java.util.Optional;
 
 
 @Slf4j
@@ -70,6 +72,7 @@ public class AuthService {
 
         session.setAttribute("loggedInUser", patient);
     }
+
 
 
 }

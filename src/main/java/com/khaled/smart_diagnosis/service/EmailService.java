@@ -51,4 +51,35 @@ public class EmailService {
             System.err.println("❌ Error sending email: " + e.getMessage());
         }
     }
+
+    public void sendResetCode(String toEmail, String code) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setTo(toEmail);
+            helper.setSubject("🔐 Password Reset Code - Smart Diagnosis");
+
+            String htmlContent = "<html>" +
+                    "<body style='font-family: Arial, sans-serif; text-align: center;'>" +
+                    "<h2 style='color: #2c3e50;'>Reset Your Password</h2>" +
+                    "<p style='color: #34495e; font-size: 16px;'>We've received a request to reset your password.</p>" +
+                    "<p style='font-size: 20px; font-weight: bold; color: #e67e22;'>🔐 Your Code: <span style='color: #2980b9;'>" + code + "</span></p>" +
+                    "<p style='color: #c0392b;'>⚠️ This code will expire in 10 minutes.</p>" +
+                    "<br>" +
+                    "<p style='color: #7f8c8d;'>If you didn’t request a password reset, please ignore this email.</p>" +
+                    "<br>" +
+                    "<p><strong>Best regards,</strong></p>" +
+                    "<p><strong>Smart Diagnosis Team</strong></p>" +
+                    "</body>" +
+                    "</html>";
+
+            helper.setText(htmlContent, true);
+            mailSender.send(message);
+
+            System.out.println("📩 Reset code email sent successfully to " + toEmail);
+        } catch (MessagingException e) {
+            System.err.println("❌ Error sending reset code email: " + e.getMessage());
+        }
+    }
 }
