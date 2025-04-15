@@ -2,9 +2,8 @@ package com.khaled.smart_diagnosis.controller;
 
 
 import com.khaled.smart_diagnosis.DTO.SettingResponse;
-import com.khaled.smart_diagnosis.model.Settings;
+import com.khaled.smart_diagnosis.DTO.UpdateSettingsRequest;
 import com.khaled.smart_diagnosis.service.SettingsService;
-import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -42,26 +41,22 @@ public class SettingsController {
     @PutMapping("/{patientId}")
     public ResponseEntity<SettingResponse> updateSettings(
             @PathVariable Long patientId,
-            @Valid @RequestBody Settings newSettings,
-            @RequestParam(required = false) String newPassword,
-            @RequestParam(required = false) String confirmPassword) {
+            @RequestBody UpdateSettingsRequest request) {
 
         log.info("🟠 [PUT] Updating settings for patientId: {}", patientId);
 
-        if (newPassword != null && !newPassword.equals(confirmPassword)) {
-            log.warn("❌ Passwords do not match");
-            return ResponseEntity.badRequest().body(new SettingResponse("Passwords do not match"));
+        Optional<SettingResponse> updatedSettingResponse =
+                settingsService.updateSettings(patientId, request);
+
+        if (updatedSettingResponse.isPresent()) {
+            log.info("✅ Settings updated successfully for patientId: {}", patientId);
+            return ResponseEntity.ok(updatedSettingResponse.get());
+        } else {
+            log.warn("❌ Failed to update settings for patientId: {}", patientId);
+            return ResponseEntity.badRequest().body(new SettingResponse("Failed to update settings"));
         }
-
-        Optional<SettingResponse> updatedSettingResponse = settingsService.updateSettings(patientId, newSettings, newPassword);
-
-        return updatedSettingResponse
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> {
-                    log.warn("❌ Failed to update settings, patientId not found: {}", patientId);
-                    return ResponseEntity.notFound().build();
-                });
     }
+
 
 
     @DeleteMapping("/{patientId}")

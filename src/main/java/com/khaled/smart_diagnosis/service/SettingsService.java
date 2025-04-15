@@ -1,6 +1,7 @@
 package com.khaled.smart_diagnosis.service;
 
 import com.khaled.smart_diagnosis.DTO.SettingResponse;
+import com.khaled.smart_diagnosis.DTO.UpdateSettingsRequest;
 import com.khaled.smart_diagnosis.model.Patient;
 import com.khaled.smart_diagnosis.model.Settings;
 import com.khaled.smart_diagnosis.repository.PatientRepository;
@@ -81,41 +82,60 @@ public class SettingsService {
     }
 
     @Transactional
-    public Optional<SettingResponse> updateSettings(Long patientId, Settings newSettings, String newPassword) {
-        // استرجاع الإعدادات باستخدام patientId
-        return settingsRepository.findByPatientId(patientId).flatMap(settings -> {
-            settings.setLanguage(newSettings.getLanguage());
-            settings.setDarkMode(newSettings.isDarkMode());
-            settingsRepository.save(settings);
+    public Optional<SettingResponse> updateSettings(Long patientId, UpdateSettingsRequest request) {
+        Settings newSettings = request.getSettings();
+        String newPassword = request.getNewPassword();
+        String confirmPassword = request.getConfirmPassword();
 
-            // تحديث بيانات المريض
-            Optional<Patient> patientOpt = patientRepository.findById(patientId);
-            if (patientOpt.isPresent()) {
-                Patient patient = patientOpt.get();
-
-                // إذا كانت كلمة السر الجديدة غير فارغة، نقوم بتحديثها
-                if (newPassword != null && !newPassword.isEmpty()) {
-                    String encryptedPassword = passwordEncoder.encode(newPassword);
-                    patient.setPassword(encryptedPassword);
-                    patientRepository.save(patient);
-                    log.info("🔑 Password updated successfully for patientId: {}", patientId);
-                }
-
-                return Optional.of(new SettingResponse(
-                        patient.getFirstName(),
-                        patient.getLastName(),
-                        patient.getEmail(),
-                        patient.getPhoneNumber(),
-                        patient.getAge(),
-                        patient.getGender(),
-                        settings.getLanguage(),
-                        settings.isDarkMode()
-                ));
-            }
-
+        if (newPassword != null && !newPassword.equals(confirmPassword)) {
+            log.warn("❌ Passwords do not match for patientId: {}", patientId);
             return Optional.empty();
-        });
+        }
+
+        // استرجاع الإعدادات الحالية
+        Optional<Settings> settingsOpt = settingsRepository.findByPatientId(patientId);
+        if (!settingsOpt.isPresent()) {
+            log.warn("❌ Settings not found for patientId: {}", patientId);
+            return Optional.empty();
+        }
+
+        Settings settings = settingsOpt.get();
+        settings.setLanguage(newSettings.getLanguage());
+        settings.setDarkMode(newSettings.isDarkMode());
+        settingsRepository.save(settings);
+
+        // استرجاع المريض
+        Optional<Patient> patientOpt = patientRepository.findById(patientId);
+        if (!patientOpt.isPresent()) {
+            log.warn("❌ Patient not found for patientId: {}", patientId);
+            return Optional.empty();
+        }
+
+        Patient patient = patientOpt.get();
+
+        // تحديث كلمة السر لو موجودة
+        if (newPassword != null && !newPassword.isEmpty()) {
+            String encryptedPassword = passwordEncoder.encode(newPassword);
+            patient.setPassword(encryptedPassword);
+            patientRepository.save(patient);
+            log.info("🔑 Password updated successfully for patientId: {}", patientId);
+        }
+
+        // إعداد الاستجابة
+        SettingResponse settingResponse = new SettingResponse(
+                patient.getFirstName(),
+                patient.getLastName(),
+                patient.getEmail(),
+                patient.getPhoneNumber(),
+                patient.getAge(),
+                patient.getGender(),
+                settings.getLanguage(),
+                settings.isDarkMode()
+        );
+
+        return Optional.of(settingResponse);
     }
+
 
     @Transactional
     public boolean hardDeleteAccount(Long patientId) {
