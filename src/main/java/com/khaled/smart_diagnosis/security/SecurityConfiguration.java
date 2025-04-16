@@ -52,8 +52,8 @@ public class SecurityConfiguration {
                                 "/api/auth/reset-password",
                                 "https://api-inference.huggingface.co/models/microsoft/BioGPT"
                         ).permitAll()  // Open these paths without authentication
-                        .requestMatchers("/api/settings/**", "/api/diagnosis").permitAll() // Allow access to specific endpoints
-                        .anyRequest().authenticated()  // All other endpoints require authentication
+                        .requestMatchers("/api/settings/**", "/api/diagnosis","/api/complaints").permitAll()
+                        .anyRequest().authenticated()
                 )
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Stateless session management
                 .authenticationProvider(authenticationProvider())  // Custom authentication provider
