@@ -92,7 +92,6 @@ public class SettingsService {
             return Optional.empty();
         }
 
-        // استرجاع الإعدادات الحالية
         Optional<Settings> settingsOpt = settingsRepository.findByPatientId(patientId);
         if (!settingsOpt.isPresent()) {
             log.warn("❌ Settings not found for patientId: {}", patientId);
@@ -104,7 +103,6 @@ public class SettingsService {
         settings.setDarkMode(newSettings.isDarkMode());
         settingsRepository.save(settings);
 
-        // استرجاع المريض
         Optional<Patient> patientOpt = patientRepository.findById(patientId);
         if (!patientOpt.isPresent()) {
             log.warn("❌ Patient not found for patientId: {}", patientId);
@@ -113,7 +111,6 @@ public class SettingsService {
 
         Patient patient = patientOpt.get();
 
-        // تحديث كلمة السر لو موجودة
         if (newPassword != null && !newPassword.isEmpty()) {
             String encryptedPassword = passwordEncoder.encode(newPassword);
             patient.setPassword(encryptedPassword);
@@ -121,7 +118,6 @@ public class SettingsService {
             log.info("🔑 Password updated successfully for patientId: {}", patientId);
         }
 
-        // إعداد الاستجابة
         SettingResponse settingResponse = new SettingResponse(
                 patient.getFirstName(),
                 patient.getLastName(),
@@ -141,7 +137,6 @@ public class SettingsService {
     public boolean hardDeleteAccount(Long patientId) {
         Optional<Patient> patientOpt = patientRepository.findById(patientId);
         if (patientOpt.isPresent()) {
-            // حذف الإعدادات أولاً ثم حذف المريض
             settingsRepository.findByPatientId(patientId).ifPresent(settingsRepository::delete);
             patientRepository.delete(patientOpt.get());
             log.info("🗑️ Patient and settings deleted permanently for patientId: {}", patientId);
