@@ -28,60 +28,63 @@ public class JWTUtil {
     private Key getSigningKey() {
         try {
             byte[] keyBytes = Base64.getDecoder().decode(secretKey);
-            Key key = Keys.hmacShaKeyFor(keyBytes);
-            log.info("Decoded Key Length: {}", key.getEncoded().length);
-            return key;
+            return Keys.hmacShaKeyFor(keyBytes);
         } catch (IllegalArgumentException e) {
-            log.error("Invalid secret key format!", e);
-            throw new IllegalStateException("Invalid secret key format!", e);
+            log.error("Invalid secret key format", e);
+            throw new IllegalStateException("Invalid secret key format", e);
         }
     }
 
-
     public String generateToken(String username) {
-        log.info("Generating token for user: {}", username);
-        return Jwts.builder()
-                .setSubject(username)
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + expiration))
-                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
-                .compact();
-    }
+        try {
+            Date now = new Date();
+            Date expiryDate = new Date(now.getTime() + expiration);
 
+            return Jwts.builder()
+                    .setSubject(username)
+                    .setIssuedAt(now)
+                    .setExpiration(expiryDate)
+                    .signWith(getSigningKey(), SignatureAlgorithm.HS256)
+                    .compact();
+        } catch (Exception e) {
+            log.error("Failed to generate token for user: {}", username, e);
+            throw new RuntimeException("Failed to generate token", e); // أو لو عندك Exception مخصص للتوكن ممكن تستخدمه هنا
+        }
+    }
 
     public String extractUsername(String token) {
         try {
-            return Jwts.parserBuilder()
-                    .setSigningKey(getSigningKey())
-                    .build()
-                    .parseClaimsJws(token)
-                    .getBody()
-                    .getSubject();
+            return parseToken(token).getBody().getSubject();
+        } catch (ExpiredJwtException e) {
+            log.warn("Token expired when extracting username: {}", token, e);
+            throw new TokenExpiredException("Token has expired", e);
         } catch (JwtException e) {
             log.error("Error extracting username from token: {}", token, e);
-            throw new InvalidTokenException("Invalid JWT token!", e);
+            throw new InvalidTokenException("Invalid JWT token", e);
         }
     }
 
-
     public boolean validateToken(String token) {
         try {
-            log.info("Validating Token: {}", token);
-            Jwts.parserBuilder()
-                    .setSigningKey(getSigningKey())
-                    .build()
-                    .parseClaimsJws(token); // This will throw an exception if the token is invalid or expired
-            log.info("Token validation successful for token: {}", token);
+            parseToken(token);
+            log.info("Token validation successful");
             return true;
         } catch (ExpiredJwtException e) {
             log.warn("Token expired: {}", token, e);
-            throw new TokenExpiredException("Token has expired!", e);
+            throw new TokenExpiredException("Token has expired", e);
         } catch (SignatureException e) {
-            log.error("Token signature invalid: {}", token, e);
-            throw new InvalidTokenException("Invalid JWT signature!", e);
+            log.error("Invalid token signature: {}", token, e);
+            throw new InvalidTokenException("Invalid JWT signature", e);
         } catch (JwtException e) {
-            log.error("JWT validation failed for token: {}", token, e);
-            throw new InvalidTokenException("Invalid JWT token!", e);
+            log.error("Token validation failed: {}", token, e);
+            throw new InvalidTokenException("Invalid JWT token", e);
         }
+    }
+
+    private Jws<Claims> parseToken(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(getSigningKey())
+                .build()
+                .parseClaimsJws(token);
     }
 }

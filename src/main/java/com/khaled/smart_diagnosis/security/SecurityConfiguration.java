@@ -6,7 +6,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -49,6 +48,7 @@ public class SecurityConfiguration {
                                 "/api/auth/forgot-password",
                                 "/api/auth/verify-reset-code",
                                 "/api/auth/reset-password",
+                                "/api/openai",
                                 "https://api-inference.huggingface.co/models/microsoft/BioGPT"
                         ).permitAll()  // Open these paths without authentication
                         .requestMatchers("/api/settings/**", "/api/diagnosis","/api/complaints").permitAll()
