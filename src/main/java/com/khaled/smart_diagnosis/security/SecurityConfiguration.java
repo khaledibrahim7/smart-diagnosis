@@ -19,8 +19,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 import java.util.List;
 
-
-
 @EnableWebSecurity
 @Configuration
 @RequiredArgsConstructor
@@ -47,15 +45,13 @@ public class SecurityConfiguration {
                                 "/api/auth/register",
                                 "/api/auth/forgot-password",
                                 "/api/auth/verify-reset-code",
-                                "/api/auth/reset-password",
-                                "/api/openai",
-                                "https://api-inference.huggingface.co/models/microsoft/BioGPT"
-                        ).permitAll()  // Open these paths without authentication
-                        .requestMatchers("/api/settings/**", "/api/diagnosis","/api/complaints").permitAll()
+                                "/api/auth/reset-password"
+                        ).permitAll()
+                        .requestMatchers("/api/settings/**", "/api/diagnosis", "/api/feedback", "/api/chat/**").authenticated()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authenticationProvider(authenticationProvider())  // Custom authentication provider
+                .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -73,7 +69,6 @@ public class SecurityConfiguration {
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
-
 
     @Bean
     public PasswordEncoder passwordEncoder() {
