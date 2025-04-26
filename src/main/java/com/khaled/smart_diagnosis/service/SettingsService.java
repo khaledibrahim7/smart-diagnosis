@@ -4,6 +4,7 @@ import com.khaled.smart_diagnosis.DTO.SettingResponse;
 import com.khaled.smart_diagnosis.DTO.UpdateSettingsRequest;
 import com.khaled.smart_diagnosis.model.Patient;
 import com.khaled.smart_diagnosis.model.Settings;
+import com.khaled.smart_diagnosis.repository.PasswordResetTokenRepository;
 import com.khaled.smart_diagnosis.repository.PatientRepository;
 import com.khaled.smart_diagnosis.repository.SettingsRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +26,9 @@ public class SettingsService {
     private SettingsRepository settingsRepository;
     @Autowired
     private PatientRepository patientRepository;
+    @Autowired
+    private PasswordResetTokenRepository passwordResetTokenRepository;
+
 
 
     @Transactional
@@ -137,6 +141,8 @@ public class SettingsService {
     public boolean hardDeleteAccount(Long patientId) {
         Optional<Patient> patientOpt = patientRepository.findById(patientId);
         if (patientOpt.isPresent()) {
+            passwordResetTokenRepository.deleteByPatientId(patientId);
+
             settingsRepository.findByPatientId(patientId).ifPresent(settingsRepository::delete);
             patientRepository.delete(patientOpt.get());
             log.info("🗑️ Patient and settings deleted permanently for patientId: {}", patientId);
