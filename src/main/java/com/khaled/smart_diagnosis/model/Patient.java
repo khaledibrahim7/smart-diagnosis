@@ -10,6 +10,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
+
 @Entity
 @Table(name = "patients")
 @Getter
@@ -49,5 +51,7 @@ public class Patient {
     @JsonBackReference
     private Settings settings;
 
+    @OneToMany(mappedBy = "patient")
+    private List<ChatSession> chatSessions;
 
 }

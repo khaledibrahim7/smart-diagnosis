@@ -6,12 +6,16 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class StartChatRequest {
+public class MessageDTO {
 
-    private String firstMessage;
-
+    private Long id;
+    private String content;
+    private boolean fromPatient;
+    private LocalDateTime timestamp;
 }

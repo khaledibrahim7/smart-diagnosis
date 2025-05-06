@@ -15,21 +15,21 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "chat_message")
-public class ChatMessage {
-
+public class Message {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(columnDefinition = "CLOB", nullable = false)
+    private String content;
+
+    @Column(nullable = false)
+    private boolean fromPatient;
+
+    @Column(nullable = false)
+    private LocalDateTime timestamp;
+
     @ManyToOne
-    @JoinColumn(name = "session_id", nullable = false)
-    private ChatSession session;
-
-    private String sender; // "PATIENT" or "BOT"
-
-    @Lob
-    private String message;
-
-    @Column(name = "timestamp")
-    private LocalDateTime timestamp = LocalDateTime.now();
+    @JoinColumn(name = "chat_session_id", nullable = false)
+    private ChatSession chatSession;
 }

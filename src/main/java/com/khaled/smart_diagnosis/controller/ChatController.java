@@ -1,15 +1,17 @@
 package com.khaled.smart_diagnosis.controller;
 
-import com.khaled.smart_diagnosis.DTO.StartChatRequest;
-import com.khaled.smart_diagnosis.model.ChatMessage;
+import com.khaled.smart_diagnosis.DTO.ChatSessionDTO;
+import com.khaled.smart_diagnosis.DTO.MessageDTO;
+import com.khaled.smart_diagnosis.ResponseWrapper.ResponseWrapper;
+import com.khaled.smart_diagnosis.model.Message;
 import com.khaled.smart_diagnosis.model.ChatSession;
 import com.khaled.smart_diagnosis.service.ChatService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/chat")
@@ -18,33 +20,51 @@ public class ChatController {
 
     private final ChatService chatService;
 
-    @PostMapping("/start")
-    public ResponseEntity<?> startNewSession(@RequestHeader("Authorization") String authHeader, @RequestBody StartChatRequest request) {
-        return new ResponseEntity<>(chatService.startNewSession(authHeader, request), HttpStatus.CREATED);
+    @GetMapping
+    public ResponseEntity<ResponseWrapper<List<ChatSessionDTO>>> getAllChats(@RequestParam Long patientId) {
+        List<ChatSession> chats = chatService.getPatientChats(patientId);
+        List<ChatSessionDTO> chatDTOs = chats.stream()
+                .map(chat -> new ChatSessionDTO(chat.getId(), chat.getTitle(), chat.getCreatedAt()))
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(new ResponseWrapper<>(chatDTOs, "تم جلب المحادثات بنجاح", true));
     }
 
-    @GetMapping("/sessions")
-    public ResponseEntity<?> getPatientSessions(@RequestHeader("Authorization") String authHeader) {
-        return new ResponseEntity<>(chatService.getPatientSessions(authHeader), HttpStatus.OK);
+    @PostMapping
+    public ResponseEntity<ResponseWrapper<ChatSessionDTO>> createChat(
+            @RequestParam Long patientId,
+            @RequestParam String title
+    ) {
+        ChatSession chat = chatService.createNewChat(patientId, title);
+        ChatSessionDTO chatDTO = new ChatSessionDTO(chat.getId(), chat.getTitle(), chat.getCreatedAt());
+        return ResponseEntity.ok(new ResponseWrapper<>(chatDTO, "تم إنشاء المحادثة بنجاح", true));
     }
 
-    @PostMapping("/save-bot-response/{sessionId}")
-    public ResponseEntity<?> saveBotResponse(@PathVariable Long sessionId, @RequestBody String responseMessage) {
-        chatService.saveBotResponse(sessionId, responseMessage);
-        return new ResponseEntity<>(HttpStatus.OK);
+    @GetMapping("/{chatId}")
+    public ResponseEntity<ResponseWrapper<List<MessageDTO>>> getMessages(@PathVariable Long chatId) {
+        List<Message> messages = chatService.getChatMessages(chatId);
+        List<MessageDTO> messageDTOs = messages.stream()
+                .map(msg -> new MessageDTO(msg.getId(), msg.getContent(), msg.isFromPatient(), msg.getTimestamp()))
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(new ResponseWrapper<>(messageDTOs, "تم جلب الرسائل بنجاح", true));
     }
 
-    @DeleteMapping("/{sessionId}")
-    public ResponseEntity<?> deleteSession(@PathVariable Long sessionId) {
-        chatService.deleteSession(sessionId);
-        return ResponseEntity.ok("Session deleted successfully");
+    @PostMapping("/{chatId}/messages")
+    public ResponseEntity<ResponseWrapper<MessageDTO>> addMessage(
+            @PathVariable Long chatId,
+            @RequestParam boolean fromPatient,
+            @RequestParam String content
+    ) {
+        Message message = chatService.addMessage(chatId, fromPatient, content);
+        MessageDTO messageDTO = new MessageDTO(message.getId(), message.getContent(), message.isFromPatient(), message.getTimestamp());
+        return ResponseEntity.ok(new ResponseWrapper<>(messageDTO, "تم إضافة الرسالة بنجاح", true));
     }
 
-
-    @GetMapping("/messages/{sessionId}")
-    public ResponseEntity<?> getSessionMessages(@PathVariable Long sessionId) {
-        List<ChatMessage> messages = chatService.getSessionMessages(sessionId);
-        return new ResponseEntity<>(messages, HttpStatus.OK);
+    @DeleteMapping("/{chatId}")
+    public ResponseEntity<ResponseWrapper<Void>> deleteChat(
+            @PathVariable Long chatId,
+            @RequestParam Long patientId
+    ) {
+        chatService.deleteChat(chatId, patientId);
+        return ResponseEntity.noContent().build();
     }
-
 }

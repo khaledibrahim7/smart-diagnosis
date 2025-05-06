@@ -20,24 +20,22 @@ import java.util.List;
 public class ChatSession {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @SequenceGenerator(name = "chat_seq", sequenceName = "chat_seq", allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "chat_seq")
     private Long id;
+
+
+    @Column(nullable = false)
+    private String title;
+
+    @Column(nullable = false)
+    private LocalDateTime createdAt;
 
     @ManyToOne
     @JoinColumn(name = "patient_id", nullable = false)
     private Patient patient;
 
-    private String title;
-
-    @Column(name = "start_time")
-    private LocalDateTime startTime = LocalDateTime.now();
-
-    @Column(name = "end_time")
-    private LocalDateTime endTime;
-
-    @OneToMany(mappedBy = "session", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonIgnore
-    private List<ChatMessage> messages = new ArrayList<>();
-
+    @OneToMany(mappedBy = "chatSession", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Message> messages;
 
 }
