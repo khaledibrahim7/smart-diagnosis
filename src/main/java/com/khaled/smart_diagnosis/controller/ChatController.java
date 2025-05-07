@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/chat")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "http://localhost:4200")
 public class ChatController {
 
     private final ChatService chatService;
@@ -26,7 +27,7 @@ public class ChatController {
         List<ChatSessionDTO> chatDTOs = chats.stream()
                 .map(chat -> new ChatSessionDTO(chat.getId(), chat.getTitle(), chat.getCreatedAt()))
                 .collect(Collectors.toList());
-        return ResponseEntity.ok(new ResponseWrapper<>(chatDTOs, "تم جلب المحادثات بنجاح", true));
+        return ResponseEntity.ok(new ResponseWrapper<>(chatDTOs, "Chats retrieved successfully", true));
     }
 
     @PostMapping
@@ -36,7 +37,7 @@ public class ChatController {
     ) {
         ChatSession chat = chatService.createNewChat(patientId, title);
         ChatSessionDTO chatDTO = new ChatSessionDTO(chat.getId(), chat.getTitle(), chat.getCreatedAt());
-        return ResponseEntity.ok(new ResponseWrapper<>(chatDTO, "تم إنشاء المحادثة بنجاح", true));
+        return ResponseEntity.ok(new ResponseWrapper<>(chatDTO, "Chat created successfully", true));
     }
 
     @GetMapping("/{chatId}")
@@ -45,7 +46,7 @@ public class ChatController {
         List<MessageDTO> messageDTOs = messages.stream()
                 .map(msg -> new MessageDTO(msg.getId(), msg.getContent(), msg.isFromPatient(), msg.getTimestamp()))
                 .collect(Collectors.toList());
-        return ResponseEntity.ok(new ResponseWrapper<>(messageDTOs, "تم جلب الرسائل بنجاح", true));
+        return ResponseEntity.ok(new ResponseWrapper<>(messageDTOs, "Messages retrieved successfully", true));
     }
 
     @PostMapping("/{chatId}/messages")
@@ -56,7 +57,7 @@ public class ChatController {
     ) {
         Message message = chatService.addMessage(chatId, fromPatient, content);
         MessageDTO messageDTO = new MessageDTO(message.getId(), message.getContent(), message.isFromPatient(), message.getTimestamp());
-        return ResponseEntity.ok(new ResponseWrapper<>(messageDTO, "تم إضافة الرسالة بنجاح", true));
+        return ResponseEntity.ok(new ResponseWrapper<>(messageDTO, "Message added successfully", true));
     }
 
     @DeleteMapping("/{chatId}")
