@@ -25,7 +25,7 @@ public class ChatSession {
     private Long id;
 
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private String title;
 
     @Column(nullable = false)

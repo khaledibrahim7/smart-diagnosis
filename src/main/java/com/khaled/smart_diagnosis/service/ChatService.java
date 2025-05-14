@@ -34,7 +34,7 @@ public class ChatService {
                 .orElseThrow(() -> new RuntimeException("المريض مش موجود"));
 
         ChatSession chat = new ChatSession();
-        chat.setTitle(title);
+        chat.setTitle(null);
         chat.setCreatedAt(LocalDateTime.now());
         chat.setPatient(patient);
 
@@ -66,6 +66,12 @@ public class ChatService {
         ChatSession chat = chatSessionRepository.findById(chatId)
                 .orElseThrow(() -> new RuntimeException("المحادثة مش موجودة"));
 
+        if (fromPatient && chat.getTitle() == null) {
+            chat.setTitle(content);
+            chatSessionRepository.save(chat);
+            log.info("تم تحديث عنوان المحادثة ID: {} إلى: {}", chatId, content);
+        }
+
         Message message = new Message();
         message.setChatSession(chat);
         message.setFromPatient(fromPatient);
@@ -82,4 +88,5 @@ public class ChatService {
 
         return savedMessage;
     }
+
 }
