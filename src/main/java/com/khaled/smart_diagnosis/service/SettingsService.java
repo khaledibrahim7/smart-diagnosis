@@ -2,11 +2,10 @@ package com.khaled.smart_diagnosis.service;
 
 import com.khaled.smart_diagnosis.DTO.SettingResponse;
 import com.khaled.smart_diagnosis.DTO.UpdateSettingsRequest;
+import com.khaled.smart_diagnosis.model.ChatSession;
 import com.khaled.smart_diagnosis.model.Patient;
 import com.khaled.smart_diagnosis.model.Settings;
-import com.khaled.smart_diagnosis.repository.PasswordResetTokenRepository;
-import com.khaled.smart_diagnosis.repository.PatientRepository;
-import com.khaled.smart_diagnosis.repository.SettingsRepository;
+import com.khaled.smart_diagnosis.repository.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -28,7 +27,10 @@ public class SettingsService {
     private PatientRepository patientRepository;
     @Autowired
     private PasswordResetTokenRepository passwordResetTokenRepository;
-
+    @Autowired
+    private ChatSessionRepository chatSessionRepository;
+    @Autowired
+    private FeedbackRepository feedbackRepository;
 
 
     @Transactional
@@ -143,13 +145,20 @@ public class SettingsService {
         if (patientOpt.isPresent()) {
             passwordResetTokenRepository.deleteByPatientId(patientId);
 
+            feedbackRepository.deleteByPatientId(patientId);
+
+            chatSessionRepository.deleteByPatientId(patientId);
+
             settingsRepository.findByPatientId(patientId).ifPresent(settingsRepository::delete);
+
             patientRepository.delete(patientOpt.get());
-            log.info("🗑️ Patient and settings deleted permanently for patientId: {}", patientId);
+
+            log.info("🗑️ Patient and related data deleted permanently for patientId: {}", patientId);
             return true;
         }
         log.warn("❌ Patient not found for deletion. patientId: {}", patientId);
         return false;
     }
+
 }
 

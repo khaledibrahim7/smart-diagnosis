@@ -9,5 +9,7 @@ import java.util.List;
 public interface ChatSessionRepository extends JpaRepository<ChatSession, Long> {
     List<ChatSession> findByPatientIdOrderByCreatedAtDesc(Long patientId);
     int countByPatientId(Long patientId);
+    void deleteByPatientId(Long patientId);
+
 
 }
