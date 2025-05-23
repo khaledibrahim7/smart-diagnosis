@@ -47,7 +47,7 @@ public class SecurityConfiguration {
                                 "/api/auth/verify-reset-code",
                                 "/api/auth/reset-password"
                         ).permitAll()
-                        .requestMatchers("/api/settings/**", "/api/diagnosis", "/api/feedback", "/api/chat/**").authenticated()
+                        .requestMatchers("/api/settings/**",  "/api/feedback", "/api/chat/**").authenticated()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

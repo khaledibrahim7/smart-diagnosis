@@ -16,6 +16,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
@@ -38,6 +39,13 @@ public class AuthService {
     private final HttpServletRequest httpRequest;
 
     public RegisterResponse register(RegisterRequest registerRequest) {
+
+        String clientIp = httpRequest.getRemoteAddr();
+        String countryCode = phoneValidationService.getCountryCode(clientIp);
+
+        if (!phoneValidationService.isValidPhoneNumber(registerRequest.getPhoneNumber(), countryCode)) {
+            throw new ValidationException("Invalid phone number for country code: " + countryCode);
+        }
 
         validateRegisterRequest(registerRequest);
 
@@ -71,6 +79,7 @@ public class AuthService {
                 savedPatient.getGender()
         );
     }
+
 
     private void validateRegisterRequest(RegisterRequest registerRequest) {
         if (!registerRequest.getPassword().equals(registerRequest.getConfirmPassword())) {
@@ -114,44 +123,43 @@ public class AuthService {
                 patient.getLastName()
         );
     }
-
     @Transactional
     public ApiResponse forgotPassword(ForgotPasswordRequest request) {
         Optional<Patient> patientOptional = patientRepository.findByEmail(request.getEmail());
+
+        String genericMessage = "If an account with that email exists, a reset code has been sent.";
+
         if (patientOptional.isEmpty()) {
-            return new ApiResponse(false, "Email not found");
+            return new ApiResponse(true, genericMessage);
         }
 
-        passwordResetTokenRepository.deleteByPatient(patientOptional.get());
+        Patient patient = patientOptional.get();
 
-        String token = UUID.randomUUID().toString().substring(0, 6);
+        // Delete existing tokens
+        passwordResetTokenRepository.deleteByPatient(patient);
+
+        String token = generateSecureCode(6);
+
         PasswordResetToken resetToken = new PasswordResetToken();
         resetToken.setToken(token);
-        resetToken.setPatient(patientOptional.get());
+        resetToken.setPatient(patient);
         resetToken.setExpiryDate(LocalDateTime.now().plusMinutes(10));
 
         passwordResetTokenRepository.save(resetToken);
-
         emailService.sendResetCode(request.getEmail(), token);
 
-        return new ApiResponse(true, "Reset code sent to your email");
+        return new ApiResponse(true, genericMessage);
     }
 
     @Transactional
     public ApiResponse verifyResetCode(VerifyCodeRequest request) {
-        Optional<Patient> patientOptional = patientRepository.findByEmail(request.getEmail());
-        if (patientOptional.isEmpty()) {
-            return new ApiResponse(false, "Email not found");
-        }
-
         Optional<PasswordResetToken> tokenOptional = passwordResetTokenRepository.findByToken(request.getToken());
 
-        if (tokenOptional.isEmpty() || !tokenOptional.get().getPatient().getEmail().equals(request.getEmail())) {
-            return new ApiResponse(false, "Invalid reset code");
-        }
+        if (tokenOptional.isEmpty() ||
+                tokenOptional.get().getExpiryDate().isBefore(LocalDateTime.now()) ||
+                !tokenOptional.get().getPatient().getEmail().equalsIgnoreCase(request.getEmail())) {
 
-        if (tokenOptional.get().getExpiryDate().isBefore(LocalDateTime.now())) {
-            return new ApiResponse(false, "Reset code expired");
+            return new ApiResponse(false, "Invalid or expired reset code");
         }
 
         return new ApiResponse(true, "Reset code is valid");
@@ -165,17 +173,43 @@ public class AuthService {
             return new ApiResponse(false, "Invalid reset code");
         }
 
-        PasswordResetToken resetToken = tokenOptional.get();
-        if (resetToken.getExpiryDate().isBefore(LocalDateTime.now())) {
+        PasswordResetToken token = tokenOptional.get();
+
+        if (token.getExpiryDate().isBefore(LocalDateTime.now())) {
             return new ApiResponse(false, "Reset code expired");
         }
 
-        Patient patient = resetToken.getPatient();
+        if (!isPasswordComplex(request.getNewPassword())) {
+            return new ApiResponse(false,
+                    "Password must be at least 8 characters, contain uppercase, lowercase, number and special character.");
+        }
+
+        Patient patient = token.getPatient();
         patient.setPassword(passwordEncoder.encode(request.getNewPassword()));
         patientRepository.save(patient);
-
-        passwordResetTokenRepository.delete(resetToken);
+        passwordResetTokenRepository.delete(token);
 
         return new ApiResponse(true, "Password reset successfully");
     }
+
+    private String generateSecureCode(int length) {
+        SecureRandom random = new SecureRandom();
+        StringBuilder code = new StringBuilder();
+
+        for (int i = 0; i < length; i++) {
+            code.append(random.nextInt(10));
+        }
+
+        return code.toString();
+    }
+
+    private boolean isPasswordComplex(String password) {
+        return password != null &&
+                password.length() >= 8 &&
+                password.matches(".*[A-Z].*") &&
+                password.matches(".*[a-z].*") &&
+                password.matches(".*\\d.*") &&
+                password.matches(".*[!@#$%^&*()\\-+=].*");
+    }
+
 }

@@ -22,6 +22,6 @@ public class FeedbackController {
     @PostMapping
     public ResponseEntity<String> submitFeedback(@RequestBody FeedbackDto feedbackDto) {
         feedbackService.submitComplaint(feedbackDto);
-        return ResponseEntity.ok("تم إرسال الشكوى بنجاح");
+        return ResponseEntity.ok("The complaint has been sent successfully");
     }
 }

@@ -21,8 +21,10 @@ public class PasswordResetToken {
 
     private String token;
 
-    @OneToOne
+    @ManyToOne
+    @JoinColumn(name = "patient_id")
     private Patient patient;
+
 
     private LocalDateTime expiryDate;
 

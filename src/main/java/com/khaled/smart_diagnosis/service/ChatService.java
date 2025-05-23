@@ -27,11 +27,11 @@ public class ChatService {
     public ChatSession createNewChat(Long patientId, String title) {
         int chatCount = chatSessionRepository.countByPatientId(patientId);
         if (chatCount >= MAX_CHATS_PER_PATIENT) {
-            throw new IllegalStateException("الحد الأقصى لعدد المحادثات هو 20. احذف واحدة قبل إنشاء جديدة.");
+            throw new IllegalStateException("Maximum conversations is 20. Delete one before creating a new one.");
         }
 
         Patient patient = patientRepository.findById(patientId)
-                .orElseThrow(() -> new RuntimeException("المريض مش موجود"));
+                .orElseThrow(() -> new RuntimeException("The patient is not present"));
 
         ChatSession chat = new ChatSession();
         chat.setTitle(null);
@@ -51,25 +51,25 @@ public class ChatService {
 
     public void deleteChat(Long chatId, Long patientId) {
         ChatSession chat = chatSessionRepository.findById(chatId)
-                .orElseThrow(() -> new RuntimeException("المحادثة غير موجودة"));
+                .orElseThrow(() -> new RuntimeException("The conversation does not exist"));
 
         if (!chat.getPatient().getId().equals(patientId)) {
-            log.error("محاولة حذف محادثة غير مصرح بها من المريض ID: {}", patientId);
-            throw new SecurityException("غير مصرح لك بحذف هذه المحادثة");
+            log.error("Attempt to delete an unauthorized conversation from the patient ID: {}", patientId);
+            throw new SecurityException("You are not allowed to delete this conversation.");
         }
 
         chatSessionRepository.delete(chat);
-        log.info("تم حذف المحادثة ID: {} بنجاح", chatId);
+        log.info("Conversation ID: {} has been successfully deleted.", chatId);
     }
 
     public Message addMessage(Long chatId, boolean fromPatient, String content) {
         ChatSession chat = chatSessionRepository.findById(chatId)
-                .orElseThrow(() -> new RuntimeException("المحادثة مش موجودة"));
+                .orElseThrow(() -> new RuntimeException("The conversation does not exist"));
 
         if (fromPatient && chat.getTitle() == null) {
             chat.setTitle(content);
             chatSessionRepository.save(chat);
-            log.info("تم تحديث عنوان المحادثة ID: {} إلى: {}", chatId, content);
+            log.info("Conversation title ID: {} updated to: {}", chatId, content);
         }
 
         Message message = new Message();
@@ -81,9 +81,9 @@ public class ChatService {
         Message savedMessage = messageRepository.save(message);
 
         if (fromPatient) {
-            log.info("تم حفظ رسالة المريض في المحادثة ID: {}", chatId);
+            log.info("The patient's message has been saved in the conversation. ID: {}", chatId);
         } else {
-            log.info("تم حفظ رد البوت في المحادثة ID: {}", chatId);
+            log.info("Bot response saved in conversation ID: {}", chatId);
         }
 
         return savedMessage;
