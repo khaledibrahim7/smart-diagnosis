@@ -19,7 +19,6 @@ public class RegisterRequest {
     private String lastName;
     private Integer age;
     private String PhoneNumber;
-    private String countryCode;
     private String gender;
 
 

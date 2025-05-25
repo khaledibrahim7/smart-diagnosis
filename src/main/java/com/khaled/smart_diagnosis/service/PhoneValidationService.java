@@ -16,6 +16,7 @@ public class PhoneValidationService {
     private final RestTemplate restTemplate = new RestTemplate();
     private final PhoneNumberUtil phoneUtil = PhoneNumberUtil.getInstance();
 
+
     public String getCountryCode(String ip) {
         try {
             String url = "http://ip-api.com/json/" + ip;
@@ -28,17 +29,30 @@ public class PhoneValidationService {
         }
     }
 
-    public boolean isValidPhoneNumber(String phoneNumber, String countryCode) {
+
+    public boolean isValidPhoneNumber(String phoneNumber, String countryIsoCode) {
         if (phoneNumber == null || phoneNumber.isEmpty()) {
             return false;
         }
 
+        if ("UNKNOWN".equals(countryIsoCode)) {
+            LOGGER.warning("Country code is UNKNOWN, cannot validate phone number correctly.");
+            return false;
+        }
+
         try {
-            Phonenumber.PhoneNumber parsedNumber = phoneUtil.parse(phoneNumber, countryCode);
-            return phoneUtil.isValidNumberForRegion(parsedNumber, countryCode);
+            if (phoneNumber.startsWith("+")) {
+                Phonenumber.PhoneNumber parsedNumber = phoneUtil.parse(phoneNumber, null);
+                return phoneUtil.isValidNumber(parsedNumber);
+            }
+
+            Phonenumber.PhoneNumber parsedNumber = phoneUtil.parse(phoneNumber, countryIsoCode);
+            return phoneUtil.isValidNumberForRegion(parsedNumber, countryIsoCode);
+
         } catch (NumberParseException e) {
             LOGGER.warning("Phone number parsing failed: " + e.getMessage());
             return false;
         }
     }
+
 }

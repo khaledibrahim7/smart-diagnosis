@@ -40,13 +40,6 @@ public class AuthService {
 
     public RegisterResponse register(RegisterRequest registerRequest) {
 
-        String clientIp = httpRequest.getRemoteAddr();
-        String countryCode = phoneValidationService.getCountryCode(clientIp);
-
-        if (!phoneValidationService.isValidPhoneNumber(registerRequest.getPhoneNumber(), countryCode)) {
-            throw new ValidationException("Invalid phone number for country code: " + countryCode);
-        }
-
         validateRegisterRequest(registerRequest);
 
         Patient patient = new Patient();
@@ -59,6 +52,7 @@ public class AuthService {
         patient.setGender(registerRequest.getGender());
 
         Patient savedPatient = patientRepository.save(patient);
+
         settingsService.createDefaultSettings(savedPatient);
 
         try {
@@ -80,7 +74,6 @@ public class AuthService {
         );
     }
 
-
     private void validateRegisterRequest(RegisterRequest registerRequest) {
         if (!registerRequest.getPassword().equals(registerRequest.getConfirmPassword())) {
             throw new PasswordsDoNotMatchException("Passwords do not match!");
@@ -91,18 +84,20 @@ public class AuthService {
         boolean hasNumber = Pattern.compile("\\d").matcher(registerRequest.getPassword()).find();
         boolean hasSpecialChar = Pattern.compile("[!@#$%^&*(),.?\":{}|<>]").matcher(registerRequest.getPassword()).find();
 
-        if (registerRequest.getPassword().length() < 5){
+        if (registerRequest.getPassword().length() < 5) {
             throw new ValidationException("Password should have at least 5 chars");
-
         }
-         if(!hasUppercase && !hasLowercase && !hasNumber && !hasSpecialChar){
-            throw new ValidationException("Password should have at least one upper case, one lower case, one number and one special chars");
-         }
 
-        if (patientRepository.findByEmail(registerRequest.getEmail()).isPresent()) {
+        if (!(hasUppercase && hasLowercase && hasNumber && hasSpecialChar)) {
+            throw new ValidationException("Password should have at least one upper case, one lower case, one number and one special char");
+        }
+
+        Optional<Patient> existing = patientRepository.findByEmail(registerRequest.getEmail());
+        if (existing.isPresent()) {
             throw new UserAlreadyExistsException("Email is already registered!");
         }
     }
+
 
     public LoginResponse login(LoginRequest request) {
         Patient patient = patientRepository.findByEmail(request.getEmail())
@@ -135,7 +130,6 @@ public class AuthService {
 
         Patient patient = patientOptional.get();
 
-        // Delete existing tokens
         passwordResetTokenRepository.deleteByPatient(patient);
 
         String token = generateSecureCode(6);
