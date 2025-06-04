@@ -35,8 +35,8 @@ public class AuthService {
     private final EmailService emailService;
     private final JWTUtil jwtUtil;
     private final HttpSession session;
-    private final PhoneValidationService phoneValidationService;
-    private final HttpServletRequest httpRequest;
+//    private final PhoneValidationService phoneValidationService;
+//    private final HttpServletRequest httpRequest;
 
     public RegisterResponse register(RegisterRequest registerRequest) {
 
