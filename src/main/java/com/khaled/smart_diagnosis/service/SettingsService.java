@@ -93,10 +93,12 @@ public class SettingsService {
         String newPassword = request.getNewPassword();
         String confirmPassword = request.getConfirmPassword();
 
+
         if (newPassword != null && !newPassword.equals(confirmPassword)) {
             log.warn("❌ Passwords do not match for patientId: {}", patientId);
             return Optional.empty();
         }
+
 
         Optional<Settings> settingsOpt = settingsRepository.findByPatientId(patientId);
         if (!settingsOpt.isPresent()) {
@@ -104,10 +106,6 @@ public class SettingsService {
             return Optional.empty();
         }
 
-        Settings settings = settingsOpt.get();
-        settings.setLanguage(newSettings.getLanguage());
-        settings.setDarkMode(newSettings.isDarkMode());
-        settingsRepository.save(settings);
 
         Optional<Patient> patientOpt = patientRepository.findById(patientId);
         if (!patientOpt.isPresent()) {
@@ -115,14 +113,29 @@ public class SettingsService {
             return Optional.empty();
         }
 
+
+        Settings settings = settingsOpt.get();
+        settings.setLanguage(newSettings.getLanguage());
+        settings.setDarkMode(newSettings.isDarkMode());
+        settingsRepository.save(settings);
+
+
         Patient patient = patientOpt.get();
+        patient.setFirstName(request.getFirstName());
+        patient.setLastName(request.getLastName());
+        patient.setPhoneNumber(request.getPhoneNumber());
+        patient.setAge(request.getAge());
+        patient.setGender(request.getGender());
+
 
         if (newPassword != null && !newPassword.isEmpty()) {
             String encryptedPassword = passwordEncoder.encode(newPassword);
             patient.setPassword(encryptedPassword);
-            patientRepository.save(patient);
             log.info("🔑 Password updated successfully for patientId: {}", patientId);
         }
+
+        patientRepository.save(patient);
+
 
         SettingResponse settingResponse = new SettingResponse(
                 patient.getFirstName(),
@@ -137,6 +150,7 @@ public class SettingsService {
 
         return Optional.of(settingResponse);
     }
+
 
 
     @Transactional

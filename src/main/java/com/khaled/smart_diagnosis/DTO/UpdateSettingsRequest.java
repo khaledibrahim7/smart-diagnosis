@@ -15,4 +15,9 @@ public class UpdateSettingsRequest {
     private String newPassword;
     private String confirmPassword;
 
+    private String firstName;
+    private String lastName;
+    private String phoneNumber;
+    private Integer age;
+    private String gender;
 }
