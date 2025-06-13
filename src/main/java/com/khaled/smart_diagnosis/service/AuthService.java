@@ -8,7 +8,6 @@ import com.khaled.smart_diagnosis.repository.PasswordResetTokenRepository;
 import com.khaled.smart_diagnosis.repository.PatientRepository;
 
 import com.khaled.smart_diagnosis.security.JWTUtil;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,7 +18,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.regex.Pattern;
 
 
@@ -35,8 +33,7 @@ public class AuthService {
     private final EmailService emailService;
     private final JWTUtil jwtUtil;
     private final HttpSession session;
-//    private final PhoneValidationService phoneValidationService;
-//    private final HttpServletRequest httpRequest;
+
 
     public RegisterResponse register(RegisterRequest registerRequest) {
 
@@ -119,13 +116,13 @@ public class AuthService {
         );
     }
     @Transactional
-    public ApiResponse forgotPassword(ForgotPasswordRequest request) {
+    public StatusResponse forgotPassword(ForgotPasswordRequest request) {
         Optional<Patient> patientOptional = patientRepository.findByEmail(request.getEmail());
 
         String genericMessage = "If an account with that email exists, a reset code has been sent.";
 
         if (patientOptional.isEmpty()) {
-            return new ApiResponse(true, genericMessage);
+            return new StatusResponse(true, genericMessage);
         }
 
         Patient patient = patientOptional.get();
@@ -142,39 +139,39 @@ public class AuthService {
         passwordResetTokenRepository.save(resetToken);
         emailService.sendResetCode(request.getEmail(), token);
 
-        return new ApiResponse(true, genericMessage);
+        return new StatusResponse(true, genericMessage);
     }
 
     @Transactional
-    public ApiResponse verifyResetCode(VerifyCodeRequest request) {
+    public StatusResponse verifyResetCode(VerifyCodeRequest request) {
         Optional<PasswordResetToken> tokenOptional = passwordResetTokenRepository.findByToken(request.getToken());
 
         if (tokenOptional.isEmpty() ||
                 tokenOptional.get().getExpiryDate().isBefore(LocalDateTime.now()) ||
                 !tokenOptional.get().getPatient().getEmail().equalsIgnoreCase(request.getEmail())) {
 
-            return new ApiResponse(false, "Invalid or expired reset code");
+            return new StatusResponse(false, "Invalid or expired reset code");
         }
 
-        return new ApiResponse(true, "Reset code is valid");
+        return new StatusResponse(true, "Reset code is valid");
     }
 
     @Transactional
-    public ApiResponse resetPassword(ResetPasswordRequest request) {
+    public StatusResponse resetPassword(ResetPasswordRequest request) {
         Optional<PasswordResetToken> tokenOptional = passwordResetTokenRepository.findByToken(request.getToken());
 
         if (tokenOptional.isEmpty()) {
-            return new ApiResponse(false, "Invalid reset code");
+            return new StatusResponse(false, "Invalid reset code");
         }
 
         PasswordResetToken token = tokenOptional.get();
 
         if (token.getExpiryDate().isBefore(LocalDateTime.now())) {
-            return new ApiResponse(false, "Reset code expired");
+            return new StatusResponse(false, "Reset code expired");
         }
 
         if (!isPasswordComplex(request.getNewPassword())) {
-            return new ApiResponse(false,
+            return new StatusResponse(false,
                     "Password must be at least 8 characters, contain uppercase, lowercase, number and special character.");
         }
 
@@ -183,7 +180,7 @@ public class AuthService {
         patientRepository.save(patient);
         passwordResetTokenRepository.delete(token);
 
-        return new ApiResponse(true, "Password reset successfully");
+        return new StatusResponse(true, "Password reset successfully");
     }
 
     private String generateSecureCode(int length) {

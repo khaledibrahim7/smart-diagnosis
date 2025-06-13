@@ -33,17 +33,17 @@ public class AuthController {
     }
 
     @PostMapping("/forgot-password")
-    public ResponseEntity<ApiResponse> forgotPassword(@RequestBody ForgotPasswordRequest request) {
+    public ResponseEntity<StatusResponse> forgotPassword(@RequestBody ForgotPasswordRequest request) {
         return ResponseEntity.ok(authService.forgotPassword(request));
     }
 
     @PostMapping("/verify-reset-code")
-    public ResponseEntity<ApiResponse> verifyResetCode(@RequestBody VerifyCodeRequest request) {
+    public ResponseEntity<StatusResponse> verifyResetCode(@RequestBody VerifyCodeRequest request) {
         return ResponseEntity.ok(authService.verifyResetCode(request));
     }
 
     @PostMapping("/reset-password")
-    public ResponseEntity<ApiResponse> resetPassword(@RequestBody ResetPasswordRequest request) {
+    public ResponseEntity<StatusResponse> resetPassword(@RequestBody ResetPasswordRequest request) {
         return ResponseEntity.ok(authService.resetPassword(request));
     }
 }
