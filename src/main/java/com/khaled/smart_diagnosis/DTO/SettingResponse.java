@@ -1,10 +1,8 @@
 package com.khaled.smart_diagnosis.DTO;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
+@Setter
 @Getter
 @Data
 @NoArgsConstructor
