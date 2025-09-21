@@ -29,10 +29,14 @@ public class AuthService {
     private final PatientRepository patientRepository;
     private final SettingsService settingsService;
     private final PasswordEncoder passwordEncoder;
+<<<<<<< HEAD
     private final PasswordResetTokenRepository passwordResetTokenRepository;
     private final EmailService emailService;
     private final JWTUtil jwtUtil;
     private final HttpSession session;
+=======
+    private final HttpSession session; 
+>>>>>>> 63038283ae7faba031b780d4587ce2b645cfe388
 
 
     public RegisterResponse register(RegisterRequest registerRequest) {
@@ -104,6 +108,10 @@ public class AuthService {
             throw new AuthenticationFailedException("Invalid email or password.");
         }
 
+<<<<<<< HEAD
+=======
+    
+>>>>>>> 63038283ae7faba031b780d4587ce2b645cfe388
         session.setAttribute("loggedInUser", patient);
 
         String token = jwtUtil.generateToken(patient.getEmail());
@@ -142,6 +150,7 @@ public class AuthService {
         return new StatusResponse(true, genericMessage);
     }
 
+<<<<<<< HEAD
     @Transactional
     public StatusResponse verifyResetCode(VerifyCodeRequest request) {
         Optional<PasswordResetToken> tokenOptional = passwordResetTokenRepository.findByToken(request.getToken());
@@ -154,6 +163,10 @@ public class AuthService {
         }
 
         return new StatusResponse(true, "Reset code is valid");
+=======
+    public void logout() {
+        session.invalidate(); 
+>>>>>>> 63038283ae7faba031b780d4587ce2b645cfe388
     }
 
     @Transactional

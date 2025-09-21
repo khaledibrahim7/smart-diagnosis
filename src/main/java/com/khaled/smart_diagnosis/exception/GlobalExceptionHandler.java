@@ -61,7 +61,11 @@ public class GlobalExceptionHandler {
         return buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "An error occurred while generating the authentication token.");
     }
 
+<<<<<<< HEAD
     @ExceptionHandler(Exception.class)
+=======
+    @ExceptionHandler(Exception.class) 
+>>>>>>> 63038283ae7faba031b780d4587ce2b645cfe388
     public ResponseEntity<Map<String, Object>> handleGenericException(Exception ex) {
         return buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred. Please try again later.");
     }

@@ -29,7 +29,15 @@ public class JWTUtil {
     private Key getSigningKey() {
         try {
             byte[] keyBytes = Base64.getDecoder().decode(secretKey);
+<<<<<<< HEAD
             return Keys.hmacShaKeyFor(keyBytes);
+=======
+            Key key = Keys.hmacShaKeyFor(keyBytes);
+
+            log.info("Decoded Key Length: " + key.getEncoded().length); 
+
+            return key;
+>>>>>>> 63038283ae7faba031b780d4587ce2b645cfe388
         } catch (IllegalArgumentException e) {
             log.error("Invalid secret key format", e);
             throw new IllegalStateException("Invalid secret key format", e);
@@ -60,6 +68,7 @@ public class JWTUtil {
         }
     }
 
+<<<<<<< HEAD
     /**
      * Extract username from JWT token.
      *
@@ -69,6 +78,8 @@ public class JWTUtil {
      * @throws InvalidTokenException   if token is invalid
      * @throws TokenProcessingException if error occurs while processing token
      */
+=======
+>>>>>>> 63038283ae7faba031b780d4587ce2b645cfe388
     public String extractUsername(String token) {
         try {
             return parseToken(token).getBody().getSubject();
@@ -123,6 +134,25 @@ public class JWTUtil {
             return Jwts.parserBuilder()
                     .setSigningKey(getSigningKey())
                     .build()
+<<<<<<< HEAD
+=======
+                    .parseClaimsJws(token)
+                    .getBody()
+                    .getSubject();
+        } catch (JwtException e) {
+            log.error("Error extracting username from token!", e);
+            throw new InvalidTokenException("Invalid JWT token!", e);
+        }
+    }
+
+
+    public boolean validateToken(String token) {
+        try {
+            log.info("Validating Token: " + token);
+            Jwts.parserBuilder()
+                    .setSigningKey(getSigningKey())
+                    .build()
+>>>>>>> 63038283ae7faba031b780d4587ce2b645cfe388
                     .parseClaimsJws(token);
         } catch (Exception e) {
             log.error("Failed to parse token: {}", token, e);

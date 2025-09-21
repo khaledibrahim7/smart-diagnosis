@@ -26,9 +26,14 @@ public class EmailService {
             helper.setTo(toEmail);
             helper.setSubject("🎉 Welcome to Smart Diagnosis, " + firstName + "!");
 
+<<<<<<< HEAD
             String imageUrl = "https://www.shutterstock.com/image-vector/artificial-intelligence-fix-bugs-checks-260nw-2522071531.jpg"; 
             String aboutPageUrl = "http://localhost:4200/about";
             String termsPageUrl = "http://localhost:4200/terms";
+=======
+            
+            String imageUrl = "https://www.shutterstock.com/image-vector/artificial-intelligence-fix-bugs-checks-260nw-2522071531.jpg";
+>>>>>>> 63038283ae7faba031b780d4587ce2b645cfe388
 
             String htmlContent = "<html>" +
                     "<body style='font-family: Arial, sans-serif; text-align: center;'>" +
